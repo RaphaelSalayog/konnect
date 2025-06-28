@@ -1,12 +1,42 @@
-import {
-    GoogleSignin,
-    isErrorWithCode,
-    isSuccessResponse,
-    statusCodes,
-} from "@react-native-google-signin/google-signin";
+import { Ionicons } from "@expo/vector-icons";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import HomeScreen from "./screens/Home";
+import ItemDetailsScreen from "./screens/ItemDetails";
+import LoginScreen from "./screens/Login";
+import UserScreen from "./screens/User";
+
+const Stack = createNativeStackNavigator();
+const BottomTab = createBottomTabNavigator();
+
+const BottomOverview = () => {
+    return (
+        <BottomTab.Navigator>
+            <BottomTab.Screen
+                name="Home"
+                options={{
+                    headerShown: false,
+                    tabBarIcon: ({ color }) => <Ionicons name="home" size={18} color={color} />,
+                }}
+                component={HomeScreen}
+            />
+            <BottomTab.Screen
+                name="User"
+                options={{
+                    title: "Me",
+                    headerShown: false,
+                    tabBarIcon: ({ color }) => <Ionicons name="person" size={18} color={color} />,
+                }}
+                component={UserScreen}
+            />
+        </BottomTab.Navigator>
+    );
+};
 
 export default function App() {
     useEffect(() => {
@@ -17,57 +47,30 @@ export default function App() {
         });
     }, []);
 
-    const handler = async () => {
-        try {
-            await GoogleSignin.hasPlayServices();
-            const response = await GoogleSignin.signIn();
-            if (isSuccessResponse(response)) {
-                console.log(response);
-            } else {
-                console.log("Google Signin was cancelled.");
-            }
-        } catch (err) {
-            if (isErrorWithCode(err)) {
-                switch (err.code) {
-                    case statusCodes.IN_PROGRESS:
-                        console.log("Google Signin is in progress.");
-                        break;
-                    case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-                        console.log("Play services are not available.");
-                        break;
-                    default:
-                        console.log(err.code);
-                }
-            } else {
-                console.log("An error occurred.");
-            }
-            console.log(err);
-        }
-    };
-
-    const singout = async () => {
-        try {
-            await GoogleSignin.signOut();
-            console.log("Logout");
-        } catch (err) {
-            console.log(err);
-        }
-    };
-
     return (
-        <View style={styles.container}>
+        <>
             <StatusBar style="auto" />
-            <Button title=" Google " onPress={handler} />
-            <Button title=" Signout " onPress={singout} />
-        </View>
+            <SafeAreaProvider>
+                <NavigationContainer>
+                    <Stack.Navigator>
+                        <Stack.Screen
+                            name="Login"
+                            options={{ headerShown: false }}
+                            component={LoginScreen}
+                        />
+                        <Stack.Screen
+                            name="HomeOverview"
+                            options={{ headerShown: false }}
+                            component={BottomOverview}
+                        />
+                        <Stack.Screen
+                            name="ItemDetails"
+                            options={{ headerShown: false }}
+                            component={ItemDetailsScreen}
+                        />
+                    </Stack.Navigator>
+                </NavigationContainer>
+            </SafeAreaProvider>
+        </>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#fff",
-        alignItems: "center",
-        justifyContent: "center",
-    },
-});
